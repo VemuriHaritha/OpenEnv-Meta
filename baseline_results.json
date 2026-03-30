@@ -1,0 +1,410 @@
+{
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "api_base": "https://router.huggingface.co/v1",
+  "results": {
+    "task_easy": {
+      "task_id": "task_easy",
+      "steps": 6,
+      "total_reward": 5.9,
+      "average_score": 0.9833,
+      "step_results": [
+        {
+          "step": 1,
+          "email_id": "e004",
+          "subject": "Server security breach detected - immediate action required",
+          "action": {
+            "category": "urgent",
+            "priority": "critical",
+            "route_to": "escalate",
+            "has_reply": false
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "easy",
+            "category_correct": true,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 2,
+          "email_id": "e002",
+          "subject": "LIMITED OFFER: Buy Viagra cheap!!!",
+          "action": {
+            "category": "spam",
+            "priority": "low",
+            "route_to": "trash",
+            "has_reply": false
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "easy",
+            "category_correct": true,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 3,
+          "email_id": "e003",
+          "subject": "CRITICAL: Production database is DOWN",
+          "action": {
+            "category": "urgent",
+            "priority": "critical",
+            "route_to": "escalate",
+            "has_reply": false
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "easy",
+            "category_correct": true,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 4,
+          "email_id": "e005",
+          "subject": "Cannot login to my account - please help",
+          "action": {
+            "category": "support",
+            "priority": "high",
+            "route_to": "support",
+            "has_reply": true
+          },
+          "reward": 0.95,
+          "breakdown": {
+            "task": "easy",
+            "category_correct": true,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 5,
+          "email_id": "e001",
+          "subject": "\ud83c\udf89 You've won $1,000,000! Claim now!",
+          "action": {
+            "category": "spam",
+            "priority": "low",
+            "route_to": "trash",
+            "has_reply": false
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "easy",
+            "category_correct": true,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 6,
+          "email_id": "e006",
+          "subject": "App crashes when I upload files larger than 10MB",
+          "action": {
+            "category": "support",
+            "priority": "high",
+            "route_to": "support",
+            "has_reply": true
+          },
+          "reward": 0.95,
+          "breakdown": {
+            "task": "easy",
+            "category_correct": true,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        }
+      ]
+    },
+    "task_medium": {
+      "task_id": "task_medium",
+      "steps": 8,
+      "total_reward": 6.82,
+      "average_score": 0.8525,
+      "step_results": [
+        {
+          "step": 1,
+          "email_id": "e008",
+          "subject": "Question about annual plan pricing",
+          "action": {
+            "category": "support",
+            "priority": "medium",
+            "route_to": "support",
+            "has_reply": true
+          },
+          "reward": 0.41,
+          "breakdown": {
+            "task": "medium",
+            "category_score": 0.3,
+            "priority_diff": 0,
+            "routing_correct": false
+          }
+        },
+        {
+          "step": 2,
+          "email_id": "e009",
+          "subject": "Your Weekly Product Digest \u2014 March 15, 2024",
+          "action": {
+            "category": "newsletter",
+            "priority": "low",
+            "route_to": "inbox",
+            "has_reply": false
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "medium",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 3,
+          "email_id": "e011",
+          "subject": "Meeting notes from yesterday's standup",
+          "action": {
+            "category": "normal",
+            "priority": "low",
+            "route_to": "inbox",
+            "has_reply": false
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "medium",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 4,
+          "email_id": "e012",
+          "subject": "HR: Reminder \u2014 Performance review submissions due Friday",
+          "action": {
+            "category": "hr",
+            "priority": "low",
+            "route_to": "inbox",
+            "has_reply": false
+          },
+          "reward": 0.41,
+          "breakdown": {
+            "task": "medium",
+            "category_score": 1.0,
+            "priority_diff": 1,
+            "routing_correct": false
+          }
+        },
+        {
+          "step": 5,
+          "email_id": "e007",
+          "subject": "Incorrect charge on my invoice #INV-2024-0312",
+          "action": {
+            "category": "billing",
+            "priority": "high",
+            "route_to": "billing",
+            "has_reply": true
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "medium",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 6,
+          "email_id": "e010",
+          "subject": "TechCrunch Daily: Top stories in AI this week",
+          "action": {
+            "category": "newsletter",
+            "priority": "low",
+            "route_to": "inbox",
+            "has_reply": false
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "medium",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 7,
+          "email_id": "e005",
+          "subject": "Cannot login to my account - please help",
+          "action": {
+            "category": "support",
+            "priority": "high",
+            "route_to": "support",
+            "has_reply": true
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "medium",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        },
+        {
+          "step": 8,
+          "email_id": "e006",
+          "subject": "App crashes when I upload files larger than 10MB",
+          "action": {
+            "category": "support",
+            "priority": "high",
+            "route_to": "support",
+            "has_reply": true
+          },
+          "reward": 1.0,
+          "breakdown": {
+            "task": "medium",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true
+          }
+        }
+      ]
+    },
+    "task_hard": {
+      "task_id": "task_hard",
+      "steps": 6,
+      "total_reward": 4.568,
+      "average_score": 0.7613,
+      "step_results": [
+        {
+          "step": 1,
+          "email_id": "e006",
+          "subject": "App crashes when I upload files larger than 10MB",
+          "action": {
+            "category": "support",
+            "priority": "high",
+            "route_to": "support",
+            "has_reply": true
+          },
+          "reward": 0.79,
+          "breakdown": {
+            "task": "hard",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true,
+            "reply_needed": true,
+            "reply_length": 266,
+            "keywords_matched": 0
+          }
+        },
+        {
+          "step": 2,
+          "email_id": "e004",
+          "subject": "Server security breach detected - immediate action required",
+          "action": {
+            "category": "urgent",
+            "priority": "critical",
+            "route_to": "escalate",
+            "has_reply": true
+          },
+          "reward": 0.832,
+          "breakdown": {
+            "task": "hard",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true,
+            "reply_needed": true,
+            "reply_length": 274,
+            "keywords_matched": 1
+          }
+        },
+        {
+          "step": 3,
+          "email_id": "e005",
+          "subject": "Cannot login to my account - please help",
+          "action": {
+            "category": "support",
+            "priority": "high",
+            "route_to": "support",
+            "has_reply": true
+          },
+          "reward": 0.874,
+          "breakdown": {
+            "task": "hard",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true,
+            "reply_needed": true,
+            "reply_length": 312,
+            "keywords_matched": 2
+          }
+        },
+        {
+          "step": 4,
+          "email_id": "e007",
+          "subject": "Incorrect charge on my invoice #INV-2024-0312",
+          "action": {
+            "category": "billing",
+            "priority": "high",
+            "route_to": "billing",
+            "has_reply": true
+          },
+          "reward": 0.916,
+          "breakdown": {
+            "task": "hard",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true,
+            "reply_needed": true,
+            "reply_length": 286,
+            "keywords_matched": 3
+          }
+        },
+        {
+          "step": 5,
+          "email_id": "e003",
+          "subject": "CRITICAL: Production database is DOWN",
+          "action": {
+            "category": "urgent",
+            "priority": "critical",
+            "route_to": "escalate",
+            "has_reply": true
+          },
+          "reward": 0.916,
+          "breakdown": {
+            "task": "hard",
+            "category_score": 1.0,
+            "priority_diff": 0,
+            "routing_correct": true,
+            "reply_needed": true,
+            "reply_length": 138,
+            "keywords_matched": 3
+          }
+        },
+        {
+          "step": 6,
+          "email_id": "e008",
+          "subject": "Question about annual plan pricing",
+          "action": {
+            "category": "normal",
+            "priority": "medium",
+            "route_to": "inbox",
+            "has_reply": false
+          },
+          "reward": 0.24,
+          "breakdown": {
+            "task": "hard",
+            "category_score": 0.2,
+            "priority_diff": 0,
+            "routing_correct": false,
+            "reply_needed": true,
+            "reply_length": 0,
+            "keywords_matched": 0
+          }
+        }
+      ]
+    }
+  },
+  "overall_average": 0.8657,
+  "runtime_seconds": 26.69355607032776
+}

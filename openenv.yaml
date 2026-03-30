@@ -1,0 +1,44 @@
+name: email-triage-env
+version: "1.0.0"
+description: >
+  A real-world email triage environment where an AI agent learns to
+  classify, prioritize, and respond to emails across varying complexity levels.
+  Designed to train and evaluate agents on realistic inbox management tasks.
+author: Haritha Vemuri
+tags:
+  - email
+  - triage
+  - nlp
+  - real-world
+  - productivity
+tasks:
+  - id: task_easy
+    name: Basic Email Classification
+    difficulty: easy
+    description: Classify emails into predefined categories (spam, urgent, normal, newsletter)
+  - id: task_medium
+    name: Priority Ranking & Routing
+    difficulty: medium
+    description: Rank emails by priority and route to correct department/label
+  - id: task_hard
+    name: Full Triage with Draft Response
+    difficulty: hard
+    description: Classify, prioritize, route, and draft an appropriate reply to urgent emails
+observation_space:
+  type: object
+  fields:
+    - email_id: string
+    - subject: string
+    - body: string
+    - sender: string
+    - timestamp: string
+    - thread_length: integer
+action_space:
+  type: object
+  fields:
+    - category: "enum[spam, urgent, normal, newsletter, support, billing, hr]"
+    - priority: "enum[low, medium, high, critical]"
+    - route_to: "enum[inbox, trash, support, billing, hr, escalate]"
+    - draft_reply: "string (optional)"
+# entrypoint: app.py
+entrypoint: env:EmailTriageEnv
