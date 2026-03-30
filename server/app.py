@@ -57,14 +57,20 @@ class ResetRequest(BaseModel):
 
 
 @app.post("/reset")
-def reset(req: ResetRequest):
+def reset(req: Optional[ResetRequest] = None):
     """Reset the environment and return the first observation."""
+
+    # Default values if no body is provided
+    task_id = req.task_id if req else "task_easy"
+    seed = req.seed if req else 42
+
     valid_tasks = ["task_easy", "task_medium", "task_hard"]
-    if req.task_id not in valid_tasks:
+    if task_id not in valid_tasks:
         raise HTTPException(status_code=400, detail=f"Invalid task_id. Choose from: {valid_tasks}")
 
-    env = EmailTriageEnv(task_id=req.task_id, seed=req.seed)
-    _envs[req.task_id] = env
+    env = EmailTriageEnv(task_id=task_id, seed=seed)
+    _envs[task_id] = env
+
     obs = env.reset()
     return obs.model_dump()
 
