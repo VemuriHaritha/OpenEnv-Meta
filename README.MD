@@ -16,8 +16,8 @@ This environment fills a real gap in the agent evaluation ecosystem — there ar
 
 ```bash
 # Clone the repo
-git clone https://huggingface.co/spaces/YOUR_USERNAME/email-triage-env
-cd email-triage-env
+git clone https://github.com/VemuriHaritha/OpenEnv-Meta
+cd OpenEnv-Meta
 
 # Install dependencies
 pip install -r requirements.txt
@@ -135,17 +135,17 @@ All rewards are in range **[0.0, 1.0]** with partial credit:
 Run the baseline:
 ```bash
 export API_BASE_URL="https://router.huggingface.co/v1"
-export MODEL_NAME="meta-llama/Meta-Llama-3.1-8B-Instruct"
+export MODEL_NAME="meta-llama/Llama-3.1-8B-Instruct"
 export HF_TOKEN="your_hf_token_here"
 python inference.py
 ```
 
 | Task | Llama-3.1-8B Avg Score |
 |---|---|
-| task_easy | ~0.72 |
-| task_medium | ~0.61 |
-| task_hard | ~0.48 |
-| **Overall** | **~0.60** |
+| task_easy | 0.97 |
+| task_medium | 0.85 |
+| task_hard | 0.76 |
+| **Overall** | **0.8657** |
 
 ---
 
@@ -167,21 +167,17 @@ curl http://localhost:7860/health
 ## 🗂️ Project Structure
 
 ```
-email-triage-env/
-├── app.py              # FastAPI server (OpenEnv endpoints)
-├── env.py              # Core environment class
-├── models.py           # Pydantic typed models (Observation, Action, Reward)
-├── inference.py        # Baseline inference script (MANDATORY)
-├── openenv.yaml        # OpenEnv metadata
+OpenEnv-Meta/
+├── app.py                # Root entry (HF Spaces)
+├── server/app.py         # FastAPI server
+├── env.py                # Environment logic
+├── models.py             # Pydantic models
+├── inference.py          # Baseline runner
+├── openenv.yaml          # OpenEnv config
 ├── requirements.txt
 ├── Dockerfile
-├── README.md
-├── data/
-│   ├── __init__.py
-│   └── emails.py       # Labeled email dataset (12 emails, 7 categories)
-└── tasks/
-    ├── __init__.py
-    └── graders.py      # Deterministic graders for all 3 tasks
+├── data/emails.py        # Dataset
+├── tasks/graders.py      # Reward logic
 ```
 
 ---
