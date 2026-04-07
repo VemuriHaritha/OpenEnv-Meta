@@ -1,6 +1,6 @@
 """
 tasks/graders.py — Deterministic graders for all 3 tasks.
-Each grader scores an agent action against ground truth (0.0 to 1.0).
+Each grader scores an agent action against ground truth (0.001 to 0.999).
 """
 
 from typing import Tuple
@@ -11,11 +11,10 @@ def grade_easy(action: Action, ground_truth: dict) -> Reward:
     """
     TASK 1 (Easy): Basic Email Classification
     Focus: category + priority correctness.
-    Score range: 0.0 – 1.0
+    Score range: 0.001 – 0.999
     """
     category_score = 1.0 if action.category == ground_truth["category"] else 0.0
 
-    # Priority: exact match = 1.0, one level off = 0.5, more = 0.0
     priority_order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
     pred_p = priority_order.get(action.priority, -1)
     true_p = priority_order.get(ground_truth["priority"], -1)
@@ -24,15 +23,16 @@ def grade_easy(action: Action, ground_truth: dict) -> Reward:
 
     routing_score = 1.0 if action.route_to == ground_truth["route_to"] else 0.0
 
-    # Weighted: category most important in easy task
     value = 0.5 * category_score + 0.3 * priority_score + 0.2 * routing_score
 
-    # Penalty for unnecessary draft reply in easy task
     if action.draft_reply and len(action.draft_reply) > 10:
         value = max(0.0, value - 0.05)
 
+    # Clamp strictly between 0 and 1 (exclusive)
+    value = round(min(max(value, 0.001), 0.999), 3)
+
     return Reward(
-        value=round(value, 3),
+        value=value,
         category_score=category_score,
         priority_score=priority_score,
         routing_score=routing_score,
@@ -50,7 +50,7 @@ def grade_medium(action: Action, ground_truth: dict) -> Reward:
     """
     TASK 2 (Medium): Priority Ranking & Routing
     Focus: routing correctness + priority ordering.
-    Score range: 0.0 – 1.0
+    Score range: 0.001 – 0.999
     """
     category_score = 1.0 if action.category == ground_truth["category"] else 0.3
 
@@ -62,11 +62,13 @@ def grade_medium(action: Action, ground_truth: dict) -> Reward:
 
     routing_score = 1.0 if action.route_to == ground_truth["route_to"] else 0.0
 
-    # In medium task, routing is weighted highest
     value = 0.2 * category_score + 0.35 * priority_score + 0.45 * routing_score
 
+    # Clamp strictly between 0 and 1 (exclusive)
+    value = round(min(max(value, 0.001), 0.999), 3)
+
     return Reward(
-        value=round(value, 3),
+        value=value,
         category_score=category_score,
         priority_score=priority_score,
         routing_score=routing_score,
@@ -84,7 +86,7 @@ def grade_hard(action: Action, ground_truth: dict) -> Reward:
     """
     TASK 3 (Hard): Full Triage with Draft Reply
     Focus: all dimensions + quality of drafted reply.
-    Score range: 0.0 – 1.0
+    Score range: 0.001 – 0.999
     """
     category_score = 1.0 if action.category == ground_truth["category"] else 0.2
 
@@ -103,22 +105,18 @@ def grade_hard(action: Action, ground_truth: dict) -> Reward:
 
     if reply_needed:
         if not action.draft_reply or len(action.draft_reply.strip()) < 20:
-            reply_score = 0.0  # No reply when one was needed
+            reply_score = 0.0
         else:
             reply_text = action.draft_reply.lower()
-            # Base score for having a reply
             reply_score = 0.3
-            # Keyword matching (partial credit)
             if ideal_keywords:
                 matched = sum(1 for kw in ideal_keywords if kw.lower() in reply_text)
                 reply_score += 0.7 * (matched / len(ideal_keywords))
             else:
                 reply_score = 0.6
-            # Penalize very short replies
             if len(action.draft_reply) < 50:
                 reply_score *= 0.5
     else:
-        # No reply needed — penalize if they wrote one anyway
         if action.draft_reply and len(action.draft_reply.strip()) > 10:
             reply_score = -0.1
         else:
@@ -126,7 +124,6 @@ def grade_hard(action: Action, ground_truth: dict) -> Reward:
 
     reply_score = round(max(0.0, min(1.0, reply_score)), 3)
 
-    # Hard task: all dimensions matter equally, reply is 30%
     value = (
         0.20 * category_score
         + 0.20 * priority_score
@@ -134,12 +131,14 @@ def grade_hard(action: Action, ground_truth: dict) -> Reward:
         + 0.30 * reply_score
     )
 
-    # Penalty for invalid actions on hard task
     if action.category not in {"spam", "urgent", "normal", "newsletter", "support", "billing", "hr"}:
         value *= 0.5
 
+    # Clamp strictly between 0 and 1 (exclusive)
+    value = round(min(max(value, 0.001), 0.999), 3)
+
     return Reward(
-        value=round(max(0.0, min(1.0, value)), 3),
+        value=value,
         category_score=category_score,
         priority_score=priority_score,
         routing_score=routing_score,
