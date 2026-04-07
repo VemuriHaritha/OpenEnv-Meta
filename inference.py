@@ -8,7 +8,7 @@ from openai import OpenAI
 # ── ENV VARIABLES (EXACTLY AS CHECKLIST REQUIRES) ─────────────────────────────
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME   = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
-HF_TOKEN     = os.getenv("HF_TOKEN") or os.getenv("API_KEY")  # try both
+HF_TOKEN     = os.getenv("HF_TOKEN") or os.getenv("API_KEY")  or "dummy-key"# try both
 
 # ── INIT CLIENT (ALWAYS, NO NONE FALLBACK) ────────────────────────────────────
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
