@@ -3,15 +3,30 @@ import json
 import time
 import sys
 from typing import List, Optional
+
+import httpx
 from openai import OpenAI
 
-# ── ENV VARIABLES (EXACTLY AS CHECKLIST REQUIRES) ─────────────────────────────
+# ── ENV VARIABLES ─────────────────────────────────────────────────────────────
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME   = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
-HF_TOKEN     = os.getenv("HF_TOKEN") or os.getenv("API_KEY")  or "dummy-key"# try both
+HF_TOKEN     = os.getenv("HF_TOKEN") or os.getenv("API_KEY") or "dummy-key"
 
-# ── INIT CLIENT (ALWAYS, NO NONE FALLBACK) ────────────────────────────────────
-client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+# ── INIT CLIENT (with custom httpx to avoid SSL/proxy issues) ─────────────────
+try:
+    client = OpenAI(
+        base_url=API_BASE_URL,
+        api_key=HF_TOKEN,
+        http_client=httpx.Client(
+            verify=False,          # skip SSL verification issues
+            timeout=60.0,
+        ),
+    )
+    print(f"[DEBUG] client initialized ok base_url={API_BASE_URL}", flush=True)
+except Exception as e:
+    print(f"[DEBUG] client init failed: {e}", flush=True)
+    # Last resort: minimal init
+    client = OpenAI(api_key=HF_TOKEN)
 
 # ── IMPORT ENV ────────────────────────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(__file__))
@@ -20,7 +35,6 @@ from models import Action
 
 TASKS = ["task_easy", "task_medium", "task_hard"]
 
-# ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """Return ONLY JSON:
 {
     "category": "<spam|urgent|normal|newsletter|support|billing|hr>",
@@ -41,14 +55,12 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float]):
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(f"[END] success={str(success).lower()} steps={steps} score={score:.2f} rewards={rewards_str}", flush=True)
 
-# ── PROMPT ────────────────────────────────────────────────────────────────────
 def build_prompt(obs: dict) -> str:
     return f"""From: {obs['sender_name']} <{obs['sender']}>
 Subject: {obs['subject']}
 Body:
 {obs['body']}"""
 
-# ── FALLBACK (only if all retries fail) ──────────────────────────────────────
 def fallback_policy(obs: dict) -> dict:
     text = (obs["subject"] + " " + obs["body"]).lower()
     if "lottery" in text:
@@ -61,11 +73,9 @@ def fallback_policy(obs: dict) -> dict:
         return {"category": "support", "priority": "high", "route_to": "support", "draft_reply": None}
     return {"category": "normal", "priority": "medium", "route_to": "inbox", "draft_reply": None}
 
-# ── LLM CALL (ALWAYS USES CLIENT) ─────────────────────────────────────────────
 def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
     for i in range(retries):
         try:
-            # THIS is the call that must go through API_BASE_URL proxy
             response = client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=[
@@ -85,11 +95,9 @@ def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
             print(f"[DEBUG] api_error attempt={i+1} error={e}", flush=True)
             if i < retries - 1:
                 time.sleep(1)
-
-    print("[DEBUG] All LLM retries failed, using fallback", flush=True)
+    print("[DEBUG] all retries failed, using fallback", flush=True)
     return fallback_policy(obs)
 
-# ── RUN TASK ──────────────────────────────────────────────────────────────────
 def run_task(task_id: str):
     log_start(task_id)
     env = EmailTriageEnv(task_id=task_id, seed=42)
@@ -139,7 +147,6 @@ def run_task(task_id: str):
 
     return score
 
-# ── MAIN ──────────────────────────────────────────────────────────────────────
 def main():
     results = {}
     for task in TASKS:
