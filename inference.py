@@ -1,25 +1,19 @@
-
-
 import os
 import json
 import time
 import sys
-from typing import Optional
+from typing import List, Optional
 
 from openai import OpenAI
 
-# ── REQUIRED ENV VARIABLES (STRICT FORMAT) ────────────────────────────────────
+# ── ENV VARIABLES (STRICT) ────────────────────────────────────────────────────
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3.1-8B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 
 # ── INIT CLIENT ───────────────────────────────────────────────────────────────
-try:
-    client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
-except Exception as e:
-    print(f"[Warning] Client init failed: {e}")
-    client = None
+client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
 # ── IMPORT ENV ────────────────────────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(__file__))
@@ -28,6 +22,7 @@ from models import Action
 
 TASKS = ["task_easy", "task_medium", "task_hard"]
 
+# ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """Return ONLY JSON:
 {
     "category": "<spam|urgent|normal|newsletter|support|billing|hr>",
@@ -37,8 +32,26 @@ SYSTEM_PROMPT = """Return ONLY JSON:
 }
 """
 
+# ── LOGGING (STRICT FORMAT) ───────────────────────────────────────────────────
+def log_start(task: str):
+    print(f"[START] task={task} env=email_triage model={MODEL_NAME}", flush=True)
+
+def log_step(step: int, action: str, reward: float, done: bool, error: Optional[str]):
+    err = error if error else "null"
+    print(
+        f"[STEP] step={step} action={action} reward={reward:.2f} done={str(done).lower()} error={err}",
+        flush=True,
+    )
+
+def log_end(success: bool, steps: int, score: float, rewards: List[float]):
+    rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+    print(
+        f"[END] success={str(success).lower()} steps={steps} score={score:.2f} rewards={rewards_str}",
+        flush=True,
+    )
+
 # ── PROMPT ────────────────────────────────────────────────────────────────────
-def build_user_prompt(obs: dict) -> str:
+def build_prompt(obs: dict) -> str:
     return f"""
 From: {obs['sender_name']} <{obs['sender']}>
 Subject: {obs['subject']}
@@ -61,14 +74,11 @@ def fallback_policy(obs: dict) -> dict:
 
     return {"category": "normal", "priority": "medium", "route_to": "inbox", "draft_reply": None}
 
-# ── LLM CALL ──────────────────────────────────────────────────────────────────
+# ── LLM CALL (ENSURES API USAGE) ──────────────────────────────────────────────
 def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
 
     for i in range(retries):
         try:
-            if client is None:
-                raise Exception("Client not initialized")
-
             response = client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=[
@@ -79,7 +89,7 @@ def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
                 max_tokens=300,
             )
 
-            raw = response.choices[0].message.content.strip()
+            raw = (response.choices[0].message.content or "").strip()
 
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
@@ -89,54 +99,74 @@ def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
             return json.loads(raw.strip())
 
         except Exception as e:
-            print(f"[DEBUG] API failed attempt {i+1}: {e}")
+            print(f"[DEBUG] api_error={e}", flush=True)
             time.sleep(1)
 
     return fallback_policy(obs)
 
-# ── TASK RUNNER ───────────────────────────────────────────────────────────────
+# ── RUN TASK ──────────────────────────────────────────────────────────────────
 def run_task(task_id: str):
 
-    print("[START]")
+    log_start(task_id)
 
     env = EmailTriageEnv(task_id=task_id, seed=42)
     obs = env.reset()
 
-    step = 0
+    rewards = []
+    steps = 0
 
-    while obs is not None:
-        step += 1
-        obs_dict = obs.model_dump()
+    try:
+        while obs is not None:
+            steps += 1
+            obs_dict = obs.model_dump()
 
-        prompt = build_user_prompt(obs_dict)
-        llm_out = call_llm(prompt, obs_dict)
+            prompt = build_prompt(obs_dict)
+            llm_out = call_llm(prompt, obs_dict)
 
+            try:
+                action = Action(
+                    category=llm_out.get("category", "normal"),
+                    priority=llm_out.get("priority", "low"),
+                    route_to=llm_out.get("route_to", "inbox"),
+                    draft_reply=llm_out.get("draft_reply", None),
+                )
+                action_str = action.category
+            except Exception as e:
+                action = Action(category="normal", priority="low", route_to="inbox")
+                action_str = "fallback"
+
+            obs, reward, done, _ = env.step(action)
+
+            r = reward.value if reward else 0.0
+            rewards.append(r)
+
+            log_step(steps, action_str, r, done, None)
+
+            if done:
+                break
+
+    except Exception as e:
+        print(f"[DEBUG] runtime_error={e}", flush=True)
+
+    finally:
         try:
-            action = Action(
-                category=llm_out.get("category", "normal"),
-                priority=llm_out.get("priority", "low"),
-                route_to=llm_out.get("route_to", "inbox"),
-                draft_reply=llm_out.get("draft_reply", None),
-            )
-        except Exception:
-            action = Action(category="normal", priority="low", route_to="inbox")
+            env.close()
+        except:
+            pass
 
-        obs, reward, done, _ = env.step(action)
+        score = sum(rewards) / len(rewards) if rewards else 0.0
+        score = min(max(score, 0.0), 1.0)
 
-        print("[STEP]")
+        success = score > 0.3
 
-        if done:
-            break
+        log_end(success, steps, score, rewards)
 
-    print("[END]")
-
-    return env.state()
+    return score
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 def main():
 
     results = {}
-
     for task in TASKS:
         results[task] = run_task(task)
 
