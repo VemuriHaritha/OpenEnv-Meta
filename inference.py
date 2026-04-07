@@ -140,8 +140,8 @@ def run_task(task_id: str):
             env.close()
         except:
             pass
-        score = sum(rewards) / len(rewards) if rewards else 0.0
-        score = min(max(score, 0.0), 1.0)
+        score = sum(rewards) / len(rewards) if rewards else 0.001
+        score = round(min(max(score, 0.001), 0.999), 3)
         success = score > 0.3
         log_end(success, steps, score, rewards)
 
