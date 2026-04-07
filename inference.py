@@ -62,30 +62,37 @@ def fallback_policy(obs: dict) -> dict:
     return {"category": "normal", "priority": "medium", "route_to": "inbox", "draft_reply": None}
 
 # ── LLM CALL ──────────────────────────────────────────────────────────────────
-def call_llm(prompt: str, obs: dict) -> dict:
+def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
 
-    try:
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.1,
-            max_tokens=300,
-        )
+    for i in range(retries):
+        try:
+            if client is None:
+                raise Exception("Client not initialized")
 
-        raw = response.choices[0].message.content.strip()
+            response = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.1,
+                max_tokens=300,
+            )
 
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
+            raw = response.choices[0].message.content.strip()
 
-        return json.loads(raw.strip())
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
 
-    except Exception:
-        return fallback_policy(obs)
+            return json.loads(raw.strip())
+
+        except Exception as e:
+            print(f"[DEBUG] API failed attempt {i+1}: {e}")
+            time.sleep(1)
+
+    return fallback_policy(obs)
 
 # ── TASK RUNNER ───────────────────────────────────────────────────────────────
 def run_task(task_id: str):
