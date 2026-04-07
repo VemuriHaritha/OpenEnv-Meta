@@ -1,28 +1,32 @@
-FROM python:3.11-slim
+# read the doc: https://huggingface.co/docs/hub/spaces-sdks-docker
+FROM python:3.11
 
-WORKDIR /app
+# Set up a new user named "user" with user ID 1000 (HF Spaces requirement)
+RUN useradd -m -u 1000 user
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Switch to the "user" user
+USER user
 
-# Copy requirements first for layer caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Set home to the user's home directory
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
+
+# Set the working directory
+WORKDIR $HOME/app
+
+# Copy requirements and install
+COPY --chown=user requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy all project files
-COPY . .
+COPY --chown=user . .
 
 # Create __init__ files so Python treats dirs as packages
 RUN touch data/__init__.py tasks/__init__.py
 
 # Expose port for HF Spaces (always 7860)
 EXPOSE 7860
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860/health || exit 1
 
 # Start the FastAPI server
 CMD ["python", "app.py"]
