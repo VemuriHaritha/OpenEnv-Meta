@@ -107,13 +107,6 @@ def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
                     raw = raw[4:]
 
             return json.loads(raw.strip())
-
-        except Exception as e:
-            print(f"[DEBUG] api_error={e}", flush=True)
-            time.sleep(1)
-
-    return fallback_policy(obs)
-
         except Exception as e:
             print(f"[DEBUG] api_error={e}", flush=True)
             time.sleep(1)
