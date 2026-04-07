@@ -10,10 +10,17 @@ from openai import OpenAI
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3.1-8B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
-LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 
 # ── INIT CLIENT ───────────────────────────────────────────────────────────────
-client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+if HF_TOKEN:
+    try:
+        client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+    except Exception as e:
+        print(f"[DEBUG] client_init_error={e}", flush=True)
+        client = None
+else:
+    print("[DEBUG] No API key found", flush=True)
+    client = None
 
 # ── IMPORT ENV ────────────────────────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(__file__))
@@ -79,6 +86,9 @@ def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
 
     for i in range(retries):
         try:
+            if client is None:
+                raise Exception("client not available")
+
             response = client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=[
@@ -97,6 +107,12 @@ def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
                     raw = raw[4:]
 
             return json.loads(raw.strip())
+
+        except Exception as e:
+            print(f"[DEBUG] api_error={e}", flush=True)
+            time.sleep(1)
+
+    return fallback_policy(obs)
 
         except Exception as e:
             print(f"[DEBUG] api_error={e}", flush=True)
