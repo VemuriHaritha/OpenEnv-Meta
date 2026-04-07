@@ -35,13 +35,32 @@ from models import Action
 
 TASKS = ["task_easy", "task_medium", "task_hard"]
 
-SYSTEM_PROMPT = """Return ONLY JSON:
+# SYSTEM_PROMPT = """Return ONLY JSON:
+# {
+#     "category": "<spam|urgent|normal|newsletter|support|billing|hr>",
+#     "priority": "<low|medium|high|critical>",
+#     "route_to": "<inbox|trash|support|billing|hr|escalate>",
+#     "draft_reply": "<text or null>"
+# }"""
+
+SYSTEM_PROMPT = """You are an expert email triage assistant.
+Analyze the email and return ONLY valid JSON with no explanation:
 {
-    "category": "<spam|urgent|normal|newsletter|support|billing|hr>",
-    "priority": "<low|medium|high|critical>",
-    "route_to": "<inbox|trash|support|billing|hr|escalate>",
-    "draft_reply": "<text or null>"
-}"""
+    "category": "spam|urgent|normal|newsletter|support|billing|hr",
+    "priority": "low|medium|high|critical",
+    "route_to": "inbox|trash|support|billing|hr|escalate",
+    "draft_reply": "your reply text or null"
+}
+
+Rules:
+- spam → route_to: trash, priority: low
+- urgent → route_to: escalate, priority: critical  
+- billing/invoice → route_to: billing, priority: high
+- support/help → route_to: support, priority: high
+- hr/leave/payroll → route_to: hr, priority: medium
+- newsletter → route_to: inbox, priority: low
+- normal → route_to: inbox, priority: medium
+Only include draft_reply if the email clearly needs a response."""
 
 # ── LOGGING ───────────────────────────────────────────────────────────────────
 def log_start(task: str):
@@ -82,8 +101,8 @@ def call_llm(prompt: str, obs: dict, retries: int = 2) -> dict:
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": prompt},
                 ],
-                temperature=0.1,
-                max_tokens=300,
+                temperature=0.0,
+                max_tokens=500,
             )
             raw = (response.choices[0].message.content or "").strip()
             if raw.startswith("```"):
