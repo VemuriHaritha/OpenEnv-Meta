@@ -21,8 +21,6 @@ import sys
 from typing import Optional
 
 from openai import OpenAI
-from dotenv import load_dotenv
-load_dotenv()
 
 # ── Load env vars ─────────────────────────────────────────────────────────────
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
