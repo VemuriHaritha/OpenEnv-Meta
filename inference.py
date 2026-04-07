@@ -7,9 +7,9 @@ from typing import List, Optional
 from openai import OpenAI
 
 # ── ENV VARIABLES (STRICT) ────────────────────────────────────────────────────
-API_BASE_URL = os.environ("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME = os.environ("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
-HF_TOKEN = os.environ("HF_TOKEN") or os.getenv("API_KEY")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
+MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.1-8B-Instruct")
+HF_TOKEN = os.getenv("API_KEY")
 
 # ── INIT CLIENT ───────────────────────────────────────────────────────────────
 if HF_TOKEN:
