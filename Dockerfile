@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.11-slim-bookworm
+FROM python:3.10-slim
 
 RUN useradd -m -u 1000 user
 USER user
