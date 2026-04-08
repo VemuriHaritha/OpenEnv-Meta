@@ -135,7 +135,7 @@ All rewards are in range **[0.0, 1.0]** with partial credit:
 Run the baseline:
 ```bash
 export API_BASE_URL="https://router.huggingface.co/v1"
-export MODEL_NAME="meta-llama/Llama-3.1-8B-Instruct"
+export MODEL_NAME="Qwen/Qwen2.5-72B-Instruct"
 export HF_TOKEN="your_hf_token_here"
 python inference.py
 ```
@@ -143,9 +143,9 @@ python inference.py
 | Task | Llama-3.1-8B Avg Score |
 |---|---|
 | task_easy | 0.97 |
-| task_medium | 0.85 |
-| task_hard | 0.76 |
-| **Overall** | **0.8657** |
+| task_medium | 0.96 |
+| task_hard | 0.84 |
+| **Overall** | **0.9127** |
 
 ---
 
